@@ -76,6 +76,33 @@
     </div>
   </section>
 
+  <!-- ================= Job Scheduling Feature ================= -->
+<section id="scheduler" style="padding:60px 20px;background:#f7f9fc;">
+  <h2 style="text-align:center;margin-bottom:8px;">Smart Course Scheduler</h2>
+  <p style="text-align:center;color:#546e7a;margin:0 0 24px;">
+    Plan your week smartly! The algorithm schedules courses to maximize your total learning score within limited days.
+  </p>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center;margin-bottom:20px;">
+    <label style="display:flex;align-items:center;gap:8px;">
+      <span>Days Available:</span>
+      <input id="daysInput" type="number" min="1" value="5"
+             style="padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;width:120px;">
+    </label>
+    <button id="scheduleBtn"
+      style="padding:12px 18px;background:#4a73d9;color:#fff;border:none;border-radius:10px;cursor:pointer;">
+      Generate Schedule
+    </button>
+  </div>
+
+  <div id="scheduleSummary" style="text-align:center;margin-bottom:16px;color:#37474f;"></div>
+  <div id="scheduleResults"
+       style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;max-width:1100px;margin:0 auto;">
+  </div>
+</section>
+<!-- ================= End Job Scheduling Feature ================= -->
+
+
   <footer>
     <p>© 2025 EduConnect | MCA AI ML Project</p>
     <br>
@@ -96,6 +123,76 @@
         document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
       });
     });
+    // ---------- Courses as "Jobs" ----------
+const COURSES = [
+  { id: 1, title: "AI Fundamentals", profit: 100, deadline: 2, img: "https://images.unsplash.com/photo-1581090700227-1e37b190418e?auto=format&fit=crop&w=800&q=80" },
+  { id: 2, title: "Web Development", profit: 80, deadline: 3, img: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80" },
+  { id: 3, title: "UI/UX Design", profit: 60, deadline: 1, img: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80" },
+  { id: 4, title: "Machine Learning", profit: 90, deadline: 2, img: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=800&q=80" },
+  { id: 5, title: "Cloud Computing", profit: 70, deadline: 3, img: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=800&q=80" },
+  { id: 6, title: "Data Science", profit: 120, deadline: 4, img: "https://images.unsplash.com/photo-1518182170547-5f7f2c2a53f0?auto=format&fit=crop&w=800&q=80" },
+  { id: 7, title: "Cybersecurity", profit: 60, deadline: 1, img: "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=800&q=80" }
+];
+
+// ---------- Job Scheduling Algorithm ----------
+function jobScheduling(courses, maxDays) {
+  // Sort by profit descending
+  courses.sort((a, b) => b.profit - a.profit);
+  const slots = Array(maxDays).fill(false);
+  const result = Array(maxDays).fill(null);
+  let totalProfit = 0;
+
+  for (const course of courses) {
+    for (let j = Math.min(maxDays, course.deadline) - 1; j >= 0; j--) {
+      if (!slots[j]) {
+        slots[j] = true;
+        result[j] = course;
+        totalProfit += course.profit;
+        break;
+      }
+    }
+  }
+
+  return { result: result.filter(Boolean), totalProfit };
+}
+
+// ---------- UI ----------
+const btn = document.getElementById("scheduleBtn");
+const daysInput = document.getElementById("daysInput");
+const outputDiv = document.getElementById("scheduleResults");
+const summary = document.getElementById("scheduleSummary");
+
+btn.addEventListener("click", () => {
+  const days = Number(daysInput.value);
+  const { result, totalProfit } = jobScheduling([...COURSES], days);
+
+  summary.innerHTML = `Scheduled <strong>${result.length}</strong> course(s) within <strong>${days}</strong> days. 
+  Total learning score: <strong>${totalProfit}</strong>`;
+
+  outputDiv.innerHTML = "";
+  if (!result.length) {
+    outputDiv.innerHTML = <div style="text-align:center;color:#777;">No courses could be scheduled.</div>;
+    return;
+  }
+
+  for (const course of result) {
+    const card = document.createElement("div");
+    card.style.cssText = `
+      background:#fff;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.06);
+      overflow:hidden;display:flex;flex-direction:column;
+    `;
+    card.innerHTML = `
+      <img src="${course.img}" alt="${course.title}" style="width:100%;height:150px;object-fit:cover;">
+      <div style="padding:14px 16px;">
+        <h3 style="margin:0 0 6px;font-size:18px;">${course.title}</h3>
+        <p style="margin:0;color:#607d8b;">Deadline: Day ${course.deadline}</p>
+        <p style="margin:4px 0;color:#37474f;">Profit: ${course.profit}</p>
+      </div>
+    `;
+    outputDiv.appendChild(card);
+  }
+});
+
   </script>
 
   <script type="module">
@@ -103,6 +200,4 @@
   Chatbot.init({
     chatbotId: "chatbot_a8zohm5c3yslwp3qh3kvq",
   });
-</script> 
-</body>
-</html>
+</script>
